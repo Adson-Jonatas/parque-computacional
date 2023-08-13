@@ -1,4 +1,3 @@
-
 class Hardware:
 
     __doc__ = 'Classe responsável pelo objeto HARDWARE, onde ' \
