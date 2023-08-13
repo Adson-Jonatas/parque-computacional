@@ -1,3 +1,10 @@
+from db import _executar
+from departamento_model import Departamento
+from companhia_model import Companhia
+from Hardware.hardware_model import Hardware
+from software_model import Software
+from seguranca_model import Seguranca
+
 
 class Maquina:
 
@@ -5,14 +12,16 @@ class Maquina:
     __doc__ = 'Classe responsável pelo objeto MÁQUINA, onde ' \
               'será instanciado o obj de máquina.'
 
-    def __init__(self, ip, nome, responsavel, funcao, setor=None):
+    def __init__(self, ip, nome, responsavel, funcao, setor=None, uid=None, nome_dep=None):
+        super(Departamento).__init__(nome_dep)
         """
         :param ip: IP da máquina
-        :param nome_maquina: Nome da máquina
+        :param nome: Nome da máquina
         :param responsavel: Nome do responsável da máquina
         :param funcao: Função a qual aquela máquina pertence dentro do setor
         :param setor: Setor a qual a máquina se encontra
         """
+        self.uid = uid
         self.__ip = ip
         self.__nome = nome
         self.__responsavel = responsavel
@@ -59,3 +68,17 @@ class Maquina:
     @setor.setter
     def setor(self, novo):
         self.__setor = novo
+
+    @staticmethod
+    def buscar():
+        return _executar(f'SELECT * FROM maquina;')
+
+    @staticmethod
+    def buscar_uid(uid):
+        query = f'SELECT * FROM maquina WHERE id={int(uid)}'
+        maquina = _executar(query)[0]
+        maquina = Maquina(uid=maquina[0], ip=maquina[1], nome=maquina[2], responsavel=maquina[3],
+                          funcao=maquina[4], setor=maquina[5])
+        return maquina
+
+
