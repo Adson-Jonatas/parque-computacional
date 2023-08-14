@@ -22,20 +22,21 @@
                     </tr>
                     {% for i in listar %}
                     <tr>
-                        <td>{{ i[1] }}</td>
+                        <td>{{ i[0] }}</td>
                         <td>{{ i[2] }}</td>
                         <td>{{ i[3] }}</td>
                         <td>{{ i[4] }}</td>
                         <td>{{ i[5] }}</td>
                         <td><a class="btn btn-danger" href="/sysvaldo/deletar/{{ i[0] }}">Deletar</a></td>
+                        <td><a class="btn btn-warning" href="/sysvaldo/atualizar/{{ i[0] }}">Editar</a></td>
                     {% end %}
                     </tr>
                 </table>
             {% else %}
                 <h1>Controle do Parque vazio!</h1>
             {% end %}
-
         <br>
+
         <div class="cotainer">
             <h3><a class="btn btn-primary" href="/sysvaldo/cadastro">Cadastrar Máquina</a></h3>
         </div>

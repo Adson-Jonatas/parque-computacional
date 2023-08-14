@@ -5,7 +5,7 @@ def _executar(query):
 
     con = mysql.connector.connect(
         host='localhost',
-        user='jonatas',
+        user='teste',
         password='teste',
         database='galo'
     )
@@ -19,4 +19,3 @@ def _executar(query):
         print(f'Erro no Banco de Dados -> [+] {err}')
     con.close()
     return resultado
-

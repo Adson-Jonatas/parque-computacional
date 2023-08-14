@@ -1,7 +1,7 @@
 from tornado import ioloop
 from tornado import httpserver
 from tornado.web import Application
-from controllers.sysvaldo_controller import Index, Cadastrar, Deletar
+from controllers.sysvaldo_controller import Index, Cadastrar, Deletar, Atualizar
 
 
 class RunApp(Application):
@@ -10,7 +10,8 @@ class RunApp(Application):
         handlers = [
             ('/', Index),
             ('/sysvaldo/cadastro', Cadastrar),
-            (r'/sysvaldo/deletar/(\d+)', Deletar)
+            (r'/sysvaldo/deletar/(\d+)', Deletar),
+            (r'/sysvaldo/atualizar/(\d+)', Atualizar)
         ]
 
         settings = dict(

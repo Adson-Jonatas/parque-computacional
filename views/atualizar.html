@@ -1,10 +1,40 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Sis - Valdão</title>
+    <link rel="stylesheet" href="{{ static_url('css/bootstrap.min.css') }}">
+
 </head>
 <body>
-
+    <div class="container">
+        <br>
+        <h3>Controle do Parque :: Sis-Valdão :: Atualizar</h3>
+        {% if atualizar %}
+            <br>
+            <table class="table">
+                    <tr>
+                        <td>IP</td>
+                        <td>Nome da Máquina</td>
+                        <td>Responsável</td>
+                        <td>Função</td>
+                        <td>Setor</td>
+                    </tr>
+                    <tr>
+                        <td>{{ atualizar.ip }}</td>
+                        <td>{{ atualizar.nome }}</td>
+                        <td>{{ atualizar.responsavel }}</td>
+                        <td>{{ atualizar.funcao }}</td>
+                        <td>{{ atualizar.setor }}</td>
+                    </tr>
+                </table>
+        {% else %}
+            <h3>Máquina não encontrada</h3>
+        {% end %}
+        <div class="cotainer">
+            <h3><a class="btn btn-primary" href="/">Voltar</a></h3>
+        </div>
+        <h3></h3>
+    </div>
 </body>
 </html>

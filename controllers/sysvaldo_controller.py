@@ -35,3 +35,14 @@ class Deletar(RequestHandler):
         delete.deletar()
 
         self.redirect('/')
+
+
+class Atualizar(RequestHandler):
+
+    def get(self, uid):
+        atualizar = Maquina.buscar_uid(uid)
+        self.render('atualizar.html', atualizar=atualizar)
+
+    def post(self):
+        ip = self.get_argument('ip', None)
+        print(f'Aqui está o ip {ip}')

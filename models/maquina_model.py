@@ -88,5 +88,3 @@ class Maquina:
         maquina = Maquina(uid=maquina[0], ip=maquina[1], nome=maquina[2], responsavel=maquina[3],
                           funcao=maquina[4], setor=maquina[5])
         return maquina
-
-
