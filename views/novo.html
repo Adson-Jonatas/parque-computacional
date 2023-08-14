@@ -1,10 +1,36 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-
-</body>
+<html lang="pt-br">
+    <head>
+        <title>SisValdão</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="{{ static_url('css/bootstrap.min.css') }}">
+    </head>
+    <body>
+        <div class="container">
+            <br>
+            <h3>Cadastro de Máquina</h3>
+            <form action="/sysvaldo/cadastro" method="POST" autocomplete="off">
+                <div class="mb-3">
+                    <label for="ip" class="form-label">IP</label>
+                    <input class="form-control" type="text" name="ip" id="ip" placeholder="Informe o IP" required autofocus >
+                </div>
+                <div class="mb-3">
+                    <label for="nome" class="form-label">Nome da máquina</label>
+                    <input class="form-control" type="text" name="nome" id="nome" placeholder="Informe o nome da máquina" required autofocus >
+                </div>
+                <div class="mb-3">
+                    <label for="responsavel" class="form-label">Responsável</label>
+                    <input class="form-control" type="text" name="responsavel" id="responsavel" placeholder="Informe o responsável" required autofocus >
+                </div>
+                <div class="mb-3">
+                    <label for="funcao" class="form-label">Função</label>
+                    <input class="form-control" type="text" name="funcao" id="funcao" placeholder="Informe a função do responsável" required autofocus >
+                </div>
+                <div class="mb-3">
+                    <button type="submit" class="btn btn-primary mb-3">Cadastrar</button>
+                </div>
+            </form>
+        </div>
+    </body>
 </html>

@@ -1,9 +1,11 @@
+"""
+import sys
+from pathlib import Path
+file = Path(__file__).resolve()
+parent, root = file.parent, file.parents[1]
+sys.path.append(str(root))
+"""
 from db import _executar
-from departamento_model import Departamento
-from companhia_model import Companhia
-from Hardware.hardware_model import Hardware
-from software_model import Software
-from seguranca_model import Seguranca
 
 
 class Maquina:
@@ -12,22 +14,13 @@ class Maquina:
     __doc__ = 'Classe responsável pelo objeto MÁQUINA, onde ' \
               'será instanciado o obj de máquina.'
 
-    def __init__(self, ip, nome, responsavel, funcao, setor=None, uid=None, nome_dep=None):
-        super(Departamento).__init__(nome_dep)
-        """
-        :param ip: IP da máquina
-        :param nome: Nome da máquina
-        :param responsavel: Nome do responsável da máquina
-        :param funcao: Função a qual aquela máquina pertence dentro do setor
-        :param setor: Setor a qual a máquina se encontra
-        """
+    def __init__(self, ip, nome, responsavel, funcao, setor=None, uid=None):
         self.uid = uid
         self.__ip = ip
         self.__nome = nome
         self.__responsavel = responsavel
         self.__funcao = funcao
         self.__setor = setor
-        print('Máquina criada com sucesso!')
 
     @property
     def ip(self):
@@ -69,13 +62,28 @@ class Maquina:
     def setor(self, novo):
         self.__setor = novo
 
+    def cadastrar(self):
+        query = (f"INSERT INTO maquina (ip, nome, responsavel, funcao, setor) values "
+                 f"('{self.ip}', '{self.nome}', '{self.responsavel}', '{self.funcao}', '{self.setor}');")
+        _executar(query)
+
+    def atualizar(self):
+        query = (f"UPDATE maquina SET ip='{self.ip}', nome='{self.nome}', responsavel='{self.responsavel}',"
+                 f"funcao='{self.funcao}', setor='{self.setor}' WHERE id={self.uid};")
+        _executar(query)
+
+    def deletar(self):
+        query = f"DELETE FROM maquina WHERE id={self.uid};"
+        _executar(query)
+
     @staticmethod
-    def buscar():
-        return _executar(f'SELECT * FROM maquina;')
+    def listar():
+        teste = _executar(f'SELECT * FROM maquina;')
+        return teste
 
     @staticmethod
     def buscar_uid(uid):
-        query = f'SELECT * FROM maquina WHERE id={int(uid)}'
+        query = f'SELECT * FROM maquina WHERE id={int(uid)};'
         maquina = _executar(query)[0]
         maquina = Maquina(uid=maquina[0], ip=maquina[1], nome=maquina[2], responsavel=maquina[3],
                           funcao=maquina[4], setor=maquina[5])
