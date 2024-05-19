@@ -1,2 +1,25 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# Define os arquivos Python para terem finais de linha Unix (LF) e serem tratados como texto
+*.py text eol=lf
+
+# Define os arquivos HTML para terem finais de linha Unix (LF) e serem tratados como texto
+*.html text eol=lf
+
+# Trate os arquivos de configuração comuns como texto com finais de linha Unix (LF)
+*.css text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.md text eol=lf
+
+# Tratamento para arquivos binários, garantindo que eles não sejam modificados
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.pdf binary
+*.zip binary
+*.gz binary
+*.tar binary
+*.mp4 binary
+*.mp3 binary
