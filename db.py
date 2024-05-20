@@ -5,8 +5,8 @@ def _executar(query):
 
     con = mysql.connector.connect(
         host='localhost',
-        user='teste',
-        password='teste',
+        user='mysql',
+        password='mysql',
         database='galo'
     )
     resultado = None
