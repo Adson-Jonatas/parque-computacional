@@ -1,0 +1,34 @@
+import requests
+from veracode_api_signing.plugin_requests import RequestsAuthPluginVeracodeHMAC
+
+# Substitua por suas credenciais
+API_KEY_ID = "SEU_API_KEY_ID"
+API_KEY_SECRET = "SUA_API_KEY_SECRET"
+
+# Substitua por um issue_id válido
+issue_id = "SEU_ISSUE_ID"
+
+url = f"https://api.veracode.com/srcclr/v3/issues/{issue_id}"
+
+headers = {
+    "Content-Type": "application/json"
+}
+
+payload = {
+    "ignored": True,
+    "ignore_reason": "Justificativa de segurança temporária",
+    "ignore_expiration_date": "2025-12-31"
+}
+
+auth = RequestsAuthPluginVeracodeHMAC(
+    api_key_id=API_KEY_ID,
+    api_key_secret=API_KEY_SECRET
+)
+
+response = requests.patch(url, headers=headers, json=payload, auth=auth)
+
+if response.status_code == 200:
+    print("Vulnerabilidade ignorada com sucesso.")
+else:
+    print(f"Erro ao aplicar ignore: {response.status_code}")
+    print(response.text)
