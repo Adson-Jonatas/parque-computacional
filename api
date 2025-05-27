@@ -1,34 +1,141 @@
-import requests
-from veracode_api_signing.plugin_requests import RequestsAuthPluginVeracodeHMAC
+# Documentação Técnica Completa - DashSecOps
 
-# Substitua por suas credenciais
-API_KEY_ID = "SEU_API_KEY_ID"
-API_KEY_SECRET = "SUA_API_KEY_SECRET"
+## 1. Visão Geral do Projeto
 
-# Substitua por um issue_id válido
-issue_id = "SEU_ISSUE_ID"
+O **DashSecOps** é um dashboard interativo para visualização e análise de vulnerabilidades extraídas de ferramentas de segurança como **Prisma Cloud** e **Veracode**. Ele centraliza os dados obtidos via **APIs** e arquivos (CSV/JSON) e permite visualizações filtradas por **sigla**, **aplicação**, **tipo de scan**, **ferramenta** e outros critérios relevantes.
 
-url = f"https://api.veracode.com/srcclr/v3/issues/{issue_id}"
+Também oferece suporte a simulação de dados (modo fake), controle sobre uso de APIs e integração com módulos futuros como Ransomware e Gastos Evitados.
 
-headers = {
-    "Content-Type": "application/json"
-}
+---
 
-payload = {
-    "ignored": True,
-    "ignore_reason": "Justificativa de segurança temporária",
-    "ignore_expiration_date": "2025-12-31"
-}
+## 2. Diagrama de Classes (Resumo e Objetivos)
 
-auth = RequestsAuthPluginVeracodeHMAC(
-    api_key_id=API_KEY_ID,
-    api_key_secret=API_KEY_SECRET
-)
+### Classes principais:
 
-response = requests.patch(url, headers=headers, json=payload, auth=auth)
+* **Projeto**: Identifica um projeto por sigla/subsigla.
+* **Aplicacao**: Vinculada a um Projeto, representa uma aplicação monitorada.
+* **Ferramenta** (abstrata): Representa uma fonte de dados (ex: Prisma, Veracode).
+* **PrismaAPI** / **VeracodeAPI**: Subclasses com métodos específicos para cada endpoint.
+* **TipoScan**: Define o tipo do scan (SAST, SCA, IaC, Imagem).
+* **Scan**: Execução de um scan para uma aplicação usando uma ferramenta e um tipo.
+* **Vulnerabilidade**: Associada a um scan e um componente afetado.
+* **Componente**: Representa um artefato técnico vulnerável (lib, imagem, IaC).
 
-if response.status_code == 200:
-    print("Vulnerabilidade ignorada com sucesso.")
-else:
-    print(f"Erro ao aplicar ignore: {response.status_code}")
-    print(response.text)
+### Relacionamentos:
+
+* Um Projeto possui várias Aplicacoes
+* Uma Aplicacao pode ter múltiplos Scans
+* Um Scan é feito por uma Ferramenta e tem um TipoScan
+* Um Scan tem várias Vulnerabilidades
+* Cada Vulnerabilidade pertence a um Componente
+
+---
+
+## 3. Diagrama de Sequência (Fluxo de Obtenção de Dados)
+
+### Cenário: Atualização dos dados via API
+
+```
+Usuário → Dashboard: Clique em "Atualizar dados"
+Dashboard → Ferramenta.buscarDados()
+Ferramenta → PrismaAPI.getIaC()
+Ferramenta → PrismaAPI.getImagem()
+Ferramenta → VeracodeAPI.getSAST()
+Ferramenta → VeracodeAPI.getSCA()
+API → Ferramenta: Dados JSON
+Ferramenta → Scan: Cria objetos Scan
+Scan → Vulnerabilidade: Cria vulnerabilidades encontradas
+Dashboard ← Dados atualizados
+```
+
+---
+
+## 4. Casos de Uso (Simplificados)
+
+### UC01 - Visualizar Vulnerabilidades
+
+* Atores: Usuário do dashboard
+* Pré-condições: Dados carregados no banco
+* Fluxo principal:
+
+  1. Selecionar filtros (sigla, ferramenta, severidade...)
+  2. Visualizar gráficos e tabela
+  3. Clicar para detalhes
+
+### UC02 - Atualizar dados via API
+
+* Atores: Usuário admin
+* Pré-condição: API key válida
+* Fluxo principal:
+
+  1. Ativar sincronização
+  2. Chamar métodos das ferramentas
+  3. Armazenar no banco
+
+### UC03 - Modo Fake
+
+* Atores: QA, usuários em teste
+* Permite carregar dados simulados sem afetar dados reais
+
+---
+
+## 5. Modelo de Banco de Dados (Requisitos e Relacionamentos)
+
+### Entidades principais
+
+* **projeto**: id, sigla, subsigla
+* **aplicacao**: id, nome, projeto\_id
+* **ferramenta**: id, nome, origem (API, CSV, fake)
+* **tipo\_scan**: id, nome (SAST, SCA, IaC...)
+* **scan**: id, data\_execucao, aplicacao\_id, ferramenta\_id, tipo\_scan\_id
+* **vulnerabilidade**: id, titulo, severidade, status, componente\_id, scan\_id
+* **componente**: id, nome, tipo
+
+### Observações para o Engenheiro de Dados:
+
+* Relacionamentos devem respeitar as cardinalidades definidas acima
+* Normalização em 3FN, com integridade referencial garantida
+* Inserções e atualizações serão feitas por ETLs que consomem as APIs das ferramentas
+* Algumas ferramentas como Prisma têm múltiplos endpoints (IaC, Imagem, Containers) e isso pode ser refletido em colunas adicionais ou tabelas auxiliares se necessário
+* Preparar tabelas de apoio para **logs de sincronização**, **modos de execução** (fake, real), e **configurações**
+
+---
+
+## 6. Requisitos para Expansão (Módulos Futuros)
+
+* **Ransomware**: Cruzamento de vulnerabilidades com técnicas conhecidas de ransomware (MITRE ATT\&CK)
+* **Gastos Evitados**: Modelagem financeira com base na mitigação de vulnerabilidades críticas
+* **Alertas e Planejamento**: Tabelas auxiliares para metas e notificações
+
+---
+
+## 7. Configuração no Dashboard (via interface)
+
+* Ativar/desativar API global
+* Ativar/desativar API por ferramenta
+* Ativar/desativar uso do banco
+* Ativar modo fake
+* Controlado via `pages/7_Customizacoes.py`
+
+---
+
+## 8. Tecnologias utilizadas
+
+* **Frontend**: Streamlit
+* **Backend/API**: Python
+* **Banco de Dados**: PostgreSQL ou SQLite (ambiente local)
+* **Deploy**: Docker (docker-compose), Kubernetes (cloud)
+* **Ferramentas integradas**: Prisma Cloud, Veracode, OSV-Scanner
+
+---
+
+## 9. Conclusão
+
+Este documento define toda a base de modelagem conceitual, lógica e de implementação necessária para o DashSecOps, incluindo:
+
+* Estrutura de classes orientadas a objetos
+* Regras de negócio e fluxo de dados
+* Modelo de dados para o engenheiro responsável
+* Requisitos para expansão futura
+
+Com isso, a equipe de desenvolvimento e dados pode evoluir com clareza e alinhamento.
