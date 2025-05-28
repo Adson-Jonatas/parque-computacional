@@ -1,141 +1,155 @@
-# Documentação Técnica Completa - DashSecOps
+Perfeito. O código acima está pronto para ser incluído em um pipeline Groovy no Jenkins (usando shared libraries ou direto em um Jenkinsfile). Ele faz o seguinte:
 
-## 1. Visão Geral do Projeto
+Objetivo:
+Substituir o bloqueio automático do Veracode por uma lógica controlada via YAML armazenado no Bitbucket.
 
-O **DashSecOps** é um dashboard interativo para visualização e análise de vulnerabilidades extraídas de ferramentas de segurança como **Prisma Cloud** e **Veracode**. Ele centraliza os dados obtidos via **APIs** e arquivos (CSV/JSON) e permite visualizações filtradas por **sigla**, **aplicação**, **tipo de scan**, **ferramenta** e outros critérios relevantes.
+O que ele faz:
+Lê o relatório saida.txt gerado pelo Veracode.
 
-Também oferece suporte a simulação de dados (modo fake), controle sobre uso de APIs e integração com módulos futuros como Ransomware e Gastos Evitados.
+Extrai as vulnerabilidades.
 
----
+Baixa e interpreta um YAML com regras de bypass (por CVE, biblioteca, severidade, sigla e componente).
 
-## 2. Diagrama de Classes (Resumo e Objetivos)
+Compara as vulnerabilidades contra as regras e bloqueia a pipeline apenas se for necessário.
 
-### Classes principais:
+Fluxo:
+Jenkins executa a pipeline.
 
-* **Projeto**: Identifica um projeto por sigla/subsigla.
-* **Aplicacao**: Vinculada a um Projeto, representa uma aplicação monitorada.
-* **Ferramenta** (abstrata): Representa uma fonte de dados (ex: Prisma, Veracode).
-* **PrismaAPI** / **VeracodeAPI**: Subclasses com métodos específicos para cada endpoint.
-* **TipoScan**: Define o tipo do scan (SAST, SCA, IaC, Imagem).
-* **Scan**: Execução de um scan para uma aplicação usando uma ferramenta e um tipo.
-* **Vulnerabilidade**: Associada a um scan e um componente afetado.
-* **Componente**: Representa um artefato técnico vulnerável (lib, imagem, IaC).
+Pipeline chama validarVulnerabilidades().
 
-### Relacionamentos:
+Esse método:
 
-* Um Projeto possui várias Aplicacoes
-* Uma Aplicacao pode ter múltiplos Scans
-* Um Scan é feito por uma Ferramenta e tem um TipoScan
-* Um Scan tem várias Vulnerabilidades
-* Cada Vulnerabilidade pertence a um Componente
+Lê saida.txt
 
----
+Baixa YAML com regras
 
-## 3. Diagrama de Sequência (Fluxo de Obtenção de Dados)
+Aplica lógica de bypass
 
-### Cenário: Atualização dos dados via API
+Se encontrar vulnerabilidades não permitidas → erro na pipeline
 
-```
-Usuário → Dashboard: Clique em "Atualizar dados"
-Dashboard → Ferramenta.buscarDados()
-Ferramenta → PrismaAPI.getIaC()
-Ferramenta → PrismaAPI.getImagem()
-Ferramenta → VeracodeAPI.getSAST()
-Ferramenta → VeracodeAPI.getSCA()
-API → Ferramenta: Dados JSON
-Ferramenta → Scan: Cria objetos Scan
-Scan → Vulnerabilidade: Cria vulnerabilidades encontradas
-Dashboard ← Dados atualizados
-```
+Exibe no log o resumo com ✔ ou ❌
 
----
+Vantagens:
+✅ Você tem total controle sobre o que pode ou não bloquear sua pipeline.
+✅ Flexibilidade por componente, sigla, CVE ou lib.
+✅ Fácil atualização das regras: basta atualizar o YAML no Bitbucket.
 
-## 4. Casos de Uso (Simplificados)
+Desvantagens:
+⚠️ Perde o controle centralizado automático da Veracode.
+⚠️ Se mal configurado, pode permitir falhas críticas passarem despercebidas.
+⚠️ Depende da disponibilidade do YAML (Bitbucket).
 
-### UC01 - Visualizar Vulnerabilidades
+Se quiser agora posso te entregar:
 
-* Atores: Usuário do dashboard
-* Pré-condições: Dados carregados no banco
-* Fluxo principal:
+Um exemplo de arquivo YAML com bypasses.
 
-  1. Selecionar filtros (sigla, ferramenta, severidade...)
-  2. Visualizar gráficos e tabela
-  3. Clicar para detalhes
+Jenkinsfile com chamada deste método.
 
-### UC02 - Atualizar dados via API
+Testes unitários em Groovy.
 
-* Atores: Usuário admin
-* Pré-condição: API key válida
-* Fluxo principal:
+Quer seguir com qual?
 
-  1. Ativar sincronização
-  2. Chamar métodos das ferramentas
-  3. Armazenar no banco
 
-### UC03 - Modo Fake
 
-* Atores: QA, usuários em teste
-* Permite carregar dados simulados sem afetar dados reais
 
----
+Você disse:
+E como será o yaml ? 
 
-## 5. Modelo de Banco de Dados (Requisitos e Relacionamentos)
 
-### Entidades principais
+O ChatGPT disse:
+O arquivo YAML de regras de bypass será usado para informar quais vulnerabilidades podem ser ignoradas com base em critérios como:
 
-* **projeto**: id, sigla, subsigla
-* **aplicacao**: id, nome, projeto\_id
-* **ferramenta**: id, nome, origem (API, CSV, fake)
-* **tipo\_scan**: id, nome (SAST, SCA, IaC...)
-* **scan**: id, data\_execucao, aplicacao\_id, ferramenta\_id, tipo\_scan\_id
-* **vulnerabilidade**: id, titulo, severidade, status, componente\_id, scan\_id
-* **componente**: id, nome, tipo
+CVE (identificador da vulnerabilidade)
 
-### Observações para o Engenheiro de Dados:
+Biblioteca (com ou sem versão)
 
-* Relacionamentos devem respeitar as cardinalidades definidas acima
-* Normalização em 3FN, com integridade referencial garantida
-* Inserções e atualizações serão feitas por ETLs que consomem as APIs das ferramentas
-* Algumas ferramentas como Prisma têm múltiplos endpoints (IaC, Imagem, Containers) e isso pode ser refletido em colunas adicionais ou tabelas auxiliares se necessário
-* Preparar tabelas de apoio para **logs de sincronização**, **modos de execução** (fake, real), e **configurações**
+Sigla (como ACOM-BASE, CDSA-BASE etc)
 
----
+Componente (como batch-cdsa-base-xpto)
 
-## 6. Requisitos para Expansão (Módulos Futuros)
+Severidade (por CVSS e versão)
 
-* **Ransomware**: Cruzamento de vulnerabilidades com técnicas conhecidas de ransomware (MITRE ATT\&CK)
-* **Gastos Evitados**: Modelagem financeira com base na mitigação de vulnerabilidades críticas
-* **Alertas e Planejamento**: Tabelas auxiliares para metas e notificações
+Aqui está um exemplo completo e comentado do YAML:
 
----
+📄 veracode-bypass-rules.yaml
 
-## 7. Configuração no Dashboard (via interface)
+yaml
+Copiar código
+# Versão do esquema
+schema_version: 1.0
 
-* Ativar/desativar API global
-* Ativar/desativar API por ferramenta
-* Ativar/desativar uso do banco
-* Ativar modo fake
-* Controlado via `pages/7_Customizacoes.py`
+# Regras globais de bypass (válidas para toda a pipeline)
+global:
+  bypass_cves:
+    - CVE-2021-12345
+    - CVE-2019-8765
+  bypass_libs:
+    - jackson-databind:2.9.10.1
+    - netty # sem versão = qualquer versão
+  bypass_severities:
+    - cvss_v3:
+        min: 0.0
+        max: 6.9
+    - cvss_v2:
+        min: 0.0
+        max: 4.9
 
----
+# Regras específicas por sigla
+siglas:
+  ACOM-BASE:
+    bypass_cves:
+      - CVE-2022-11111
+    bypass_libs:
+      - log4j:1.2.17
+      - gson # qualquer versão
+    bypass_severities:
+      - cvss_v3:
+          min: 0.0
+          max: 8.5
+  CDSA-BASE:
+    bypass_cves:
+      - CVE-2020-99999
+    bypass_libs:
+      - org.apache.commons
+    bypass_severities:
+      - cvss_v3:
+          min: 0.0
+          max: 7.0
 
-## 8. Tecnologias utilizadas
+# Regras específicas por componente (nome exato do artefato na esteira)
+componentes:
+  net-acom-base-core-dados:
+    bypass_cves:
+      - CVE-2021-98765
+    bypass_libs:
+      - my-custom-lib:1.0.0
+    bypass_severities:
+      - cvss_v3:
+          min: 0.0
+          max: 9.0
+  batch-cdsa-base-importador:
+    bypass_libs:
+      - commons-io
+🧠 Regras de precedência:
 
-* **Frontend**: Streamlit
-* **Backend/API**: Python
-* **Banco de Dados**: PostgreSQL ou SQLite (ambiente local)
-* **Deploy**: Docker (docker-compose), Kubernetes (cloud)
-* **Ferramentas integradas**: Prisma Cloud, Veracode, OSV-Scanner
+Regras por componente (mais específicas)
 
----
+Regras por sigla (intermediárias)
 
-## 9. Conclusão
+Regras globais (fallback)
 
-Este documento define toda a base de modelagem conceitual, lógica e de implementação necessária para o DashSecOps, incluindo:
+🔧 Como funciona:
 
-* Estrutura de classes orientadas a objetos
-* Regras de negócio e fluxo de dados
-* Modelo de dados para o engenheiro responsável
-* Requisitos para expansão futura
+O Groovy vai ler esse YAML, detectar qual sigla e componente está em execução (recebidos como parâmetros), e aplicar as regras correspondentes.
 
-Com isso, a equipe de desenvolvimento e dados pode evoluir com clareza e alinhamento.
+Se a CVE, biblioteca ou severidade for encontrada no bypass, ela será ignorada.
+
+Se quiser, posso gerar esse YAML dinamicamente com base no seu repositório ou fornecer um template pronto no Bitbucket.
+
+Deseja agora:
+
+Um template real para testar?
+
+Script para validar se o YAML está bem formado?
+
+Exemplo de bypass aplicado em tempo de execução?
