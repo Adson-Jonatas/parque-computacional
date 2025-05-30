@@ -1,45 +1,32 @@
-# Severidades bloqueadas para todos, caso a sigla não esteja em nenhum grupo específico
-bloqueio_global:
-  - Crítica
+severidades_analise:
+  global:
+    - CRITICAL  # padrão para todas as siglas
 
-# Grupos de siglas que terão bloqueios adicionais
-bloqueio_por_grupo:
-  Alto:
-    - ACOM-BASE
-    - SPAG-GACE
-  Médio:
-    - CDSA-BASE
+  siglas_ampliadas:
+    HIGH:
+      - CDSA-BASE
+      - ACOM-BASE
+    MEDIUM:
+      - ACOM-BASE  # ACOM-BASE agora bloqueia até medium
+      - SPAG-BASE
 
-# Lista global de CVEs ignoradas
-bypass_cves:
-  - CVE-2023-1234
-  - CVE-2021-0001
-
-# Lista global de bibliotecas ignoradas
-bypass_libraries:
-  - log4j-core
-  - jackson-databind:2.9.10
-
-# Regras de bypass por sigla
-bypass_por_sigla:
-  ACOM-BASE:
+bypass:
+  global:
     cves:
-      - CVE-2019-9999
-    libraries:
-      - spring-core
-  CDSA-BASE:
-    cves: []
-    libraries:
-      - commons-beanutils
+      - CVE-2023-0001
+    libs:
+      - log4j
 
-# Regras de bypass por componente
-bypass_por_componente:
-  net-acom-base-gestao:
-    cves:
-      - CVE-2020-5678
-    libraries:
-      - my-custom-lib:1.0.0
-  batch-cdsa-base-processamento:
-    cves:
-      - CVE-2022-0002
-    libraries: []
+  por_sigla:
+    CDSA-BASE:
+      cves:
+        - CVE-2022-9999
+      libs:
+        - spring-core
+
+  por_componente:
+    net-cdsa-base-gestao:
+      cves:
+        - CVE-2021-0005
+      libs:
+        - jackson-databind
